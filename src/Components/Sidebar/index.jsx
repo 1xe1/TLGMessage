@@ -19,10 +19,15 @@ const Sidebar = () => {
     setShowLogoutConfirm(true);
   };
 
-  const confirmLogout = () => {
-    logout();
-    navigate("/login");
-    setShowLogoutConfirm(false);
+  const confirmLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setShowLogoutConfirm(false);
+    }
   };
 
   return (
@@ -76,7 +81,10 @@ const Sidebar = () => {
       {/* Bottom Controls */}
       <div className="mt-auto p-4 border-t border-gray-800">
         <div className="flex justify-between items-center">
-          <button className="p-2 hover:bg-gray-800 rounded-lg">
+          <button
+            className="p-2 hover:bg-gray-800 rounded-lg"
+            onClick={() => navigate("/app-config")}
+          >
             <HiOutlineCog className="text-xl" />
           </button>
           <button

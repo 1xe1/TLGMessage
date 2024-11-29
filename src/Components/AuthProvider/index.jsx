@@ -1,43 +1,68 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  checkAuth,
+  logout as logoutService,
+} from "../../Control/Service/Login";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        if (userData.token) {
-          setUser(userData);
-        }
+    const initAuth = async () => {
+      if (window.location.pathname === "/login") {
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error('Error loading stored user:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+
+      try {
+        const userData = await checkAuth();
+        if (userData) {
+          setUser(userData);
+        } else {
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        localStorage.removeItem("user");
+        navigate("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
+  }, [navigate]);
 
   const login = (userData) => {
-    if (userData.token) {
+    if (userData.id && userData.username) {
       setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(userData));
     } else {
-      throw new Error('Token not found in user data');
+      throw new Error("Invalid user data received");
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      await logoutService();
+      setUser(null);
+      localStorage.removeItem("user");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setUser(null);
+      localStorage.removeItem("user");
+      navigate("/login");
+    }
   };
 
   if (loading) {
-    return null; // or a loading spinner
+    return <div>Loading...</div>;
   }
 
   return (
