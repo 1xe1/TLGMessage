@@ -39,12 +39,10 @@ api.interceptors.response.use(
 
 export const login = async (username, password) => {
   try {
-    console.log('Attempting login to:', API_URL);
     const response = await api.post('/api/v1/login', {
       username,
       password,
     });
-    console.log('Login response:', response);
     
     // Store user data with token from cookie
     const userData = {
