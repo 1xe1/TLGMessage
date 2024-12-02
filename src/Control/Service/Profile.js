@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3123';
+const API_URL = import.meta.env.API_URL || 'http://localhost:3123';
 
 // สร้าง axios instance สำหรับ profile service
 const api = axios.create({

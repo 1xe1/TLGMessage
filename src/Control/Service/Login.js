@@ -65,12 +65,8 @@ export const login = async (username, password) => {
 
 // Add new auth check function
 export const checkAuth = async () => {
-  try {
-    const response = await api.get('/api/v1/check-auth');
-    return response.data.user;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/api/v1/check-auth');
+  return response.data.user;
 };
 
 export const logout = async () => {
