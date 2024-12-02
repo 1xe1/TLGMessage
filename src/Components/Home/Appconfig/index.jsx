@@ -1,7 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { getProfile as getProfileService, updateProfile as updateProfileService } from "../../../Control/Service/Profile";
+import {
+  getProfile as getProfileService,
+  updateProfile as updateProfileService,
+} from "../../../Control/Service/Profile";
+// Import icons
+import {
+  FaUser,
+  FaPhone,
+  FaKey,
+  FaHashtag,
+  FaSave,
+  FaSpinner,
+  FaExclamationCircle,
+  FaInfoCircle,
+} from "react-icons/fa";
 
 const Appconfig = () => {
   const [formData, setFormData] = useState({
@@ -22,7 +36,7 @@ const Appconfig = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const data = await getProfileService();
       if (data?.user) {
         setFormData({
@@ -45,14 +59,26 @@ const Appconfig = () => {
     }
   };
 
+  const validatePhone = (phone) => {
+    const cleanPhone = phone.replace(/[\s-]/g, "");
+    if (!/^0\d{9}$/.test(cleanPhone)) {
+      return false;
+    }
+    return true;
+  };
+
   const validateForm = (data) => {
-    if (!data.name || !data.api_id || !data.api_hash || !data.phone) {
+    const cleanPhone = data.phone.replace(/[\s-]/g, "");
+
+    if (!data.name || !cleanPhone || !data.api_id || !data.api_hash) {
       toast.error("กรุณากรอกข้อมูลให้ครบถ้วน");
       return false;
     }
 
-    if (!/^[0-9]{10}$/.test(data.phone)) {
-      toast.error("เบอร์โทรศัพท์ไม่ถูกต้อง (ต้องเป็นตัวเลข 10 หลัก)");
+    if (!validatePhone(cleanPhone)) {
+      toast.error(
+        "เบอร์โทรศัพท์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย 0 ตามด้วยตัวเลข 9 หลัก)"
+      );
       return false;
     }
 
@@ -96,98 +122,191 @@ const Appconfig = () => {
     }));
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-6">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-2">กำลังโหลด...</p>
-        </div>
-      </div>
-    );
-  }
+  const handlePhoneChange = (e) => {
+    let value = e.target.value;
 
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-          <strong className="font-bold">เกิดข้อผิดพลาด! </strong>
-          <span className="block sm:inline">{error}</span>
-        </div>
-      </div>
-    );
-  }
+    if (!/^[0-9\s-]*$/.test(value)) {
+      return;
+    }
+
+    const cleanValue = value.replace(/[\s-]/g, "");
+    if (cleanValue.length <= 10) {
+      setFormData((prev) => ({
+        ...prev,
+        phone: value,
+      }));
+    }
+  };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">ข้อมูลโปรไฟล์</h2>
-      <form onSubmit={handleSubmit} className="mb-8 bg-white p-6 rounded-lg shadow">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              ชื่อ
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-              placeholder="กรอกชื่อ"
-            />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6">
+      {/* Header Section */}
+      <div className="max-w-4xl mx-auto mb-8">
+        <div className="flex items-center space-x-4 bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+          <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg">
+            <FaUser className="text-2xl" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              API ID
-            </label>
-            <input
-              type="text"
-              name="api_id"
-              value={formData.api_id}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter API ID"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              API Hash
-            </label>
-            <input
-              type="text"
-              name="api_hash"
-              value={formData.api_hash}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter API Hash"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              เบอร์โทรศัพท์
-            </label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter Phone Number"
-            />
+            <h2 className="text-2xl font-bold text-gray-800">ข้อมูลโปรไฟล์</h2>
+            <p className="text-gray-500">จัดการข้อมูลส่วนตัวของคุณ</p>
           </div>
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className={`mt-4 px-4 py-2 rounded text-white ${
-            loading 
-              ? "bg-gray-400 cursor-not-allowed" 
-              : "bg-blue-500 hover:bg-blue-600"
-          }`}
-        >
-          {loading ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
-        </button>
-      </form>
+      </div>
+
+      {/* Main Form */}
+      <div className="max-w-4xl mx-auto">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {/* Form Header */}
+          <div className="px-8 py-6 bg-gradient-to-r from-purple-500 to-pink-500">
+            <h3 className="text-xl font-semibold text-white">แก้ไขข้อมูล</h3>
+            <p className="text-purple-100 mt-1">กรุณากรอกข้อมูลให้ครบถ้วน</p>
+          </div>
+
+          {/* Form Fields */}
+          <div className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* ชื่อ */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <FaUser className="text-purple-500 mr-2" />
+                  ชื่อ
+                </label>
+                <div className="relative rounded-lg shadow-sm">
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="กรอกชื่อ"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaUser className="text-gray-400 text-lg" />
+                  </div>
+                </div>
+              </div>
+
+              {/* เบอร์โทรศัพท์ */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <FaPhone className="text-purple-500 mr-2" />
+                  เบอร์โทรศัพท์
+                </label>
+                <div className="relative rounded-lg shadow-sm">
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handlePhoneChange}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="0xxxxxxxxx"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaPhone className="text-gray-400 text-lg" />
+                  </div>
+                </div>
+                <p className="flex items-center text-sm text-gray-500 mt-1">
+                  <FaInfoCircle className="mr-2 text-purple-400" />
+                  ตัวอย่าง: 0812345678
+                </p>
+              </div>
+
+              {/* API ID */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <FaKey className="text-purple-500 mr-2" />
+                  API ID
+                </label>
+                <div className="relative rounded-lg shadow-sm">
+                  <input
+                    type="text"
+                    name="api_id"
+                    value={formData.api_id}
+                    onChange={handleInputChange}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="Enter API ID"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaKey className="text-gray-400 text-lg" />
+                  </div>
+                </div>
+              </div>
+
+              {/* API Hash */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <FaHashtag className="text-purple-500 mr-2" />
+                  API Hash
+                </label>
+                <div className="relative rounded-lg shadow-sm">
+                  <input
+                    type="text"
+                    name="api_hash"
+                    value={formData.api_hash}
+                    onChange={handleInputChange}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="Enter API Hash"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaHashtag className="text-gray-400 text-lg" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="mt-8 flex justify-end">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`
+                  px-6 py-3 rounded-lg text-white font-medium 
+                  flex items-center justify-center transition-all
+                  transform hover:scale-105 active:scale-95
+                  ${loading 
+                    ? "bg-gray-400 cursor-not-allowed" 
+                    : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl"
+                  }
+                `}
+              >
+                {loading ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    <FaSave className="mr-2" />
+                    บันทึกข้อมูล
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="fixed inset-0 bg-purple-900/50 flex items-center justify-center z-50 backdrop-blur-sm">
+            <div className="bg-white p-8 rounded-2xl shadow-2xl flex items-center space-x-4">
+              <FaSpinner className="animate-spin text-purple-500 text-3xl" />
+              <p className="text-lg font-medium">กำลังดำเนินการ...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="max-w-4xl mx-auto mt-6">
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <FaExclamationCircle className="text-red-500 text-xl flex-shrink-0" />
+                <p className="text-red-800">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
