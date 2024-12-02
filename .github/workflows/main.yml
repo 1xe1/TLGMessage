@@ -1,0 +1,47 @@
+name: 🚀 TLGM Deploy - Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  FTP-Deploy-Action:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4  # Updated to v4
+
+      - name: Use Node.js 20.17.0
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.17.0' 
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        id: cache-node-modules
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: 🔨 Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          npm install
+        env:
+         NODE_OPTIONS: "--max_old_space_size=4096"
+         CI: false
+
+      - name: 🏗 Build Project
+        run: npm run build
+
+      - name: 📂 Sync folders and files to the server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: dist/  # ใช้ไฟล์ใน dist/
+          server-dir: public_html/
